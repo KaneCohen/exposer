@@ -1,0 +1,144 @@
+#exposer {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(16,16,16,0.92);
+  -webkit-box-shadow: 0 0 160px rgba(0, 0, 0, 0.8);
+     -moz-box-shadow: 0 0 160px rgba(0, 0, 0, 0.8);
+      -ms-box-shadow: 0 0 160px rgba(0, 0, 0, 0.8);
+          box-shadow: 0 0 160px rgba(0, 0, 0, 0.8);
+	z-index: 300;
+}
+
+#exposer .spinner {
+	height: 32px;
+	width: 32px;
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	margin: auto;
+	border: 2px solid rgba(255,255,255,0.2);
+}
+
+#exposer .spinner:before {
+	left: -2px;
+	top: -2px;
+	border-top: 2px solid rgba(255,255,255,1);
+}
+
+#exposer .close {
+	width: 40px;
+	height: 40px;
+	display: block;
+	position: absolute;
+	z-index: 3;
+	top: 20px;
+	right: 20px;
+	cursor: pointer;
+
+	border-radius: 2px;
+	background: rgba(0,0,0,0.6) url(exposer.png) 12px -108px no-repeat;
+}
+
+#exposer .prev-container,
+#exposer .next-container {
+	width: 20%;
+	min-width: 200px;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	z-index: 2;
+	opacity: 0.4;
+	cursor: pointer;
+}
+
+#exposer .close,
+#exposer .prev-container,
+#exposer .next-container {
+  -webkit-transition: opacity 0.3s linear;
+     -moz-transition: opacity 0.3s linear;
+      -ms-transition: opacity 0.3s linear;
+          transition: opacity 0.3s linear;
+}
+#exposer.dim .close,
+#exposer.dim .prev-container,
+#exposer.dim .nextContainer {
+	opacity: 0;
+}
+
+#exposer .prev-container:hover,
+#exposer .next-container:hover {
+	opacity: 1;
+}
+
+
+#exposer .prev-container {
+	left: 0;
+}
+
+#exposer .next-container {
+	right: 0;
+}
+
+#exposer .prev,
+#exposer .next {
+	width: 50px;
+	height: 60px;
+	margin-top: -30px;
+	position: absolute;
+	top: 50%;
+	right: 0;
+	display: block;
+	background: rgba(0,0,0,0.6) url(exposer.png) 17px 13px no-repeat;
+
+	border-radius: 2px 0 0 2px;
+}
+
+#exposer .prev {
+	left: 0;
+	background: rgba(0,0,0,0.6) url(exposer.png) 17px -47px no-repeat;
+
+	border-radius: 0 2px 2px 0;
+}
+
+#exposer .item {
+	z-index: 1;
+	display: none;
+}
+
+#exposer .item.active {
+	display: block;
+}
+
+#exposer .item .container {
+	position: absolute;
+	display: block;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	margin: auto;
+}
+
+#exposer .item .image,
+#exposer .item .video {
+	width: 100%;
+	height: 100%;
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 1;
+}
+
+#exposer img.fade {
+  opacity: 0;
+}
+
+#exposer img.fade.in {
+  opacity: 1;
+}
