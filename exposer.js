@@ -16,7 +16,7 @@
 
 	$.fn.exposer = function(options) {
 		var exp = null, args = arguments;
-		var o = $.extend(true, {}, options);
+		var o = $.extend({}, options);
 		o.selector = this.selector;
 		o.element = $(document);
 
@@ -208,7 +208,7 @@
 					});
 
 					$.each(collection, function(k,v) {
-						var item = $.extend(true, {}, itemDefault);
+						var item = $.extend({}, itemDefault);
 						item.original = $(v);
 						item.link = $(v).attr('href');
 						self.v.items.push(item);
@@ -216,7 +216,7 @@
 					});
 				}
 			} else {
-				var item = $.extend(true, {}, itemDefault);
+				var item = $.extend({}, itemDefault);
 				this.v.activeItem = 0;
 				item.original = this.v.clickItem;
 				item.link = this.v.clickItem.attr('href');
