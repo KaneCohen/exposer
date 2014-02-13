@@ -12,7 +12,7 @@
 	}
 }(function($) {
 
-	'strict';
+	'use strict';
 
 	$.fn.exposer = function(options) {
 		var exp = null, args = arguments;
@@ -36,8 +36,8 @@
 	};
 
 	var defaultOptions = {
-		extensions: ['jpg', 'jpeg', 'png', 'gif', 'tiff', 'bmp'],
 		hideOnOverlayClick: true,
+		preload: 1,  // How many images to load before/ahead of the current active image.
 		callbacks: {}
 	};
 	var defaultVars = {
@@ -45,6 +45,7 @@
 		clickItem:   null,
 		activeItem:  null,
 		items: [],
+		extensions: ['jpg', 'jpeg', 'png', 'gif', 'tiff', 'bmp'],
 		videoProviders: {
 			youtube: {
 				regex: [
@@ -86,7 +87,9 @@
 		html: {
 			exposer: '<div id="exposer"></div>',
 			header:    '<div class="header"><span class="close"></span></div>',
-			content:   '<div class="content"><a href="#" class="prev-container"><span class="prev"></span></a><a href="#" class="next-container"><span class="next"></span></a></div>',
+			content:   '<div class="content"><a href="#" class="prev-container">' +
+				'<span class="prev"></span></a><a href="#" class="next-container">' +
+				'<span class="next"></span></a></div>',
 			list:      '<ul class="items"></ul>',
 			item:      '<li class="item"></li>',
 			itemContainer:  '<div class="container"></div>',
@@ -112,7 +115,8 @@
 			o.element.on('click.'+o.id+' touchend.'+o.id, o.selector, function(e) {
 				if (self.validateItem(this.href)) {
 					self.v.clickItem = $(this);
-					self.showExposer(e, $(this));
+					self.show(e, $(this));
+					e.stopPropagation();
 					e.preventDefault();
 					return false;
 				}
@@ -127,17 +131,19 @@
 				self.repositionItem(self.v.activeItem);
 			});
 			this.v.container.on('click.exposer', function(e) {
-				if (e.target.classList.contains('close') || (self.o.hideOnOverlayClick && e.target.id == 'exposer')) {
-					self.hideExposer();
+				if (e.target.classList.contains('close')
+				    || (self.o.hideOnOverlayClick && e.target.id == 'exposer'))
+				{
+					self.hide();
 					return false;
 				}
 			});
 
 			this.v.container.on('click.exposer', '.prev-container, .next-container', function(e) {
 				if ($(e.currentTarget).hasClass('prev-container')) {
-					self.showPrev();
+					self.prev();
 				} else {
-					self.showNext();
+					self.next();
 				}
 				e.stopPropagation();
 				e.preventDefault();
@@ -229,10 +235,10 @@
 			return this.getContentType(href) ? true : false;
 		},
 
-		showExposer: function(e, el) {
+		show: function(e, el) {
 			// Detect what type of content are we trying to load
-			var st = $('body').scrollTop();
-			var sl = $('body').scrollLeft();
+			var st = $(document).scrollTop();
+			var sl = $(document).scrollLeft();
 			$('body').css({overflow: 'hidden'})
 				.scrollTop(st)
 				.scrollLeft(sl);
@@ -243,7 +249,7 @@
 			this.initListeners();
 		},
 
-		hideExposer: function() {
+		hide: function() {
 			$('body').css({overflow: ''});
 			this.v.container.remove();
 			clearInterval(this.v.dimTimer);
@@ -254,7 +260,7 @@
 		preload: function() {
 			var self = this;
 			$.each(this.v.items, function(key,item) {
-				if (key >= self.v.activeItem - 1 && key <= self.v.activeItem + 1 && ! item.loaded) {
+				if (key >= self.v.activeItem - self.o.preload && key <= self.v.activeItem + self.o.preload && ! item.loaded) {
 					self.buildContent(key);
 				}
 			});
@@ -271,7 +277,7 @@
 			}
 		},
 
-		showNext: function() {
+		next: function() {
 			if (this.v.activeItem < this.v.items.length-1) {
 				this.v.activeItem++;
 				this.preload();
@@ -282,7 +288,7 @@
 			}
 		},
 
-		showPrev: function() {
+		prev: function() {
 			if (this.v.activeItem > 0) {
 				this.v.activeItem--;
 				this.preload();
@@ -295,13 +301,13 @@
 
 		keyDown: function(e) {
 			if (e.which == 37) {
-				this.showPrev();
+				this.prev();
 				e.preventDefault();
 			} else if (e.which == 39) {
-				this.showNext();
+				this.next();
 				e.preventDefault();
 			} else if (e.which == 27) {
-				this.hideExposer();
+				this.hide();
 				e.preventDefault();
 			}
 		},
@@ -417,7 +423,7 @@
 			// Content either could be an image or a video
 			var segments = href.split('.');
 			var ext = segments[segments.length-1].split('?');
-			if (this.o.extensions.indexOf(ext[0].toLowerCase()) != -1) {
+			if (this.v.extensions.indexOf(ext[0].toLowerCase()) != -1) {
 				return 'image';
 			}
 			return null;
@@ -431,21 +437,28 @@
 					var regex = new RegExp(regStr, 'i');
 					match = link.match(regex);
 					if (match) {
-						return;
+						return false;
 					}
 				});
 				if (match) {
-					items = match.splice(1);
+					var items = match.splice(1);
+					var attributes = $.extend({}, v.attributes);
 					$.each(items, function(x, item) {
 						x = x+1;
-						$.each(v.attributes, function(i,attr) {
+						$.each(attributes, function(i,attr) {
 							if (attr !== null) {
-								v.attributes[i] = new String(attr).replace('{1}', item);
+								var regex = new RegExp('\\{(\\D+)?(' + x + ')([^}]+)?\\}', 'i');
+								var attrMatch = new String(attr).match(regex);
+								if (attrMatch) {
+									var ai = attrMatch.splice(1);
+									var replacement = (ai[0] || '') + item + (ai[2] || '');
+									attributes[i] = new String(attr).replace(attrMatch[0], replacement);
+								}
 							}
 						});
 					});
-					provider = v.attributes;
-					return;
+					provider = attributes;
+					return false;
 				}
 			});
 			return provider;
